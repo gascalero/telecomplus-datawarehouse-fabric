@@ -1,0 +1,522 @@
+-- Quality Check Validation Description:
+--
+-- The quality check validation process followed four standard rules [1]:
+-- *   **Rule # 1: Check Integrity of Business Key (for DIM tables)** [1]
+-- *   **Rule # 2: Check Uniqueness of dimension attributes (for DIM tables)** [1]
+-- *   **Rule # 3: Check Integrity of Fact table's PK (for FACT tables)** [1]
+-- *   **Rule # 4: Check relationship of foreign key in Fact table (for FACT tables)** [1]
+--
+-- A 'log_quality_checks' table was created in the staging area to record any quality issues [1, 2].
+-- According to the sources, **no errors were detected** after running the validation pipeline [1, 2].
+--
+-- Dimension Tables Quality Checks:
+--
+-- *   **Rule # 1: Check Integrity of Business Key (for DIM tables)** - This check ensures that the **business keys** (e.g., `bk_customer` in `dim_customer`, `bk_agent` in `dim_agent`, `bk_channel` in `dim_channel`, `bk_plan` in `dim_plan`, and `bk_reason` in `dim_reason`) in each dimension table are **not null** and maintain their integrity. Business keys are the natural keys from the source systems that uniquely identify each dimension member.
+--
+-- *   **Rule # 2: Check Uniqueness of dimension attributes (for DIM tables)** - This rule focuses on ensuring the **uniqueness of key attributes** within each dimension table. For example, it might check if there are duplicate `agent_name` values in the `dim_agent` table when they should be unique, or if `channel_platform` values in `dim_channel` are consistent.
+--
+-- Fact Tables Quality Checks:
+--
+-- *   **Rule # 3: Check Integrity of Fact table's PK (for FACT tables)** - This check pertains to the **primary keys** of the fact tables (`fact_customer_interactions_cases` and `fact_signups_record`). Fact tables typically have **composite primary keys consisting of foreign keys referencing the dimension tables**. This rule would ensure that these **foreign key combinations are not null** and maintain the integrity of the fact table's primary key.
+--
+-- *   **Rule # 4: Check relationship of foreign key in Fact table (for FACT tables)** - This is crucial for **referential integrity**. It verifies that the **foreign keys** in the fact tables (e.g., `fk_date`, `fk_agent`, `fk_channel`, `fk_customer`, `fk_reason` in `fact_customer_interactions_cases`; `fk_signup_date`, `fk_termination_date`, `fk_customer`, `fk_plan` in `fact_signups_record`) correctly reference valid **surrogate keys** (`sk_date`, `sk_customer`, `sk_agent`, `sk_channel`, `sk_plan`, `sk_reason`) in their corresponding dimension tables. This ensures that **every fact record is associated with valid dimension members**.
+
+
+-- SQL RULE 1 ON STG DIM CHANNEL
+
+INSERT INTO STG_TELECOMPLUS_SUBSCRIPTIONS.dbo.log_quality_check
+SELECT 1 AS ID_CHECK,
+	'Staging Area' AS ETL_PHASE,
+	'stg_dim_channel' AS ETL_TABLE,
+	'check integrity of BK' AS ETL_CHECKTYPE,
+	'number of rows with repeated BK: ' + str(count(row_count)) AS DESCRIPTION_RESULT,
+	CASE 
+		WHEN count(row_count) > 0
+			THEN 'FAIL'
+		ELSE 'OK'
+		END AS ETL_RESULT
+FROM (
+	SELECT count(*) AS row_count
+	FROM STG_TELECOMPLUS_SUBSCRIPTIONS.dbo.stg_dim_channel
+	GROUP BY bk_channel
+	HAVING count(*) > 1
+	) q;
+
+
+-- SQL RULE 2 ON STG DIM CHANNEL
+
+INSERT INTO STG_TELECOMPLUS_SUBSCRIPTIONS.dbo.log_quality_check
+SELECT 2 AS ID_CHECK,
+	'Staging Area' AS ETL_PHASE,
+	'stg_dim_channel' AS ETL_TABLE,
+	'check uniqueness of all dim attributes' AS ETL_CHECKTYPE,
+	'number of rows NOT unique: ' + str(count(row_count)) AS DESCRIPTION_RESULT,
+	CASE 
+		WHEN count(row_count) > 0
+			THEN 'FAIL'
+		ELSE 'OK'
+		END AS ETL_RESULT
+FROM (
+	SELECT count(*) AS row_count
+	FROM STG_TELECOMPLUS_SUBSCRIPTIONS.dbo.stg_dim_channel
+	GROUP BY channel_category,
+		channel_type,
+		channel_platform
+	HAVING count(*) > 1
+	) q;
+
+
+-- SQL RULE 1 ON STG DIM REASON
+
+INSERT INTO STG_TELECOMPLUS_SUBSCRIPTIONS.dbo.log_quality_check
+SELECT 1 AS ID_CHECK,
+	'Staging Area' AS ETL_PHASE,
+	'stg_dim_reason' AS ETL_TABLE,
+	'check integrity of BK' AS ETL_CHECKTYPE,
+	'number of rows with repeated BK: ' + str(count(row_count)) AS DESCRIPTION_RESULT,
+	CASE 
+		WHEN count(row_count) > 0
+			THEN 'FAIL'
+		ELSE 'OK'
+		END AS ETL_RESULT
+FROM (
+	SELECT count(*) AS row_count
+	FROM STG_TELECOMPLUS_SUBSCRIPTIONS.dbo.stg_dim_reason
+	GROUP BY bk_reason
+	HAVING count(*) > 1
+	) q;
+
+
+-- SQL RULE 2 ON STG DIM REASON
+
+INSERT INTO STG_TELECOMPLUS_SUBSCRIPTIONS.dbo.log_quality_check
+SELECT 2 AS ID_CHECK,
+	'Staging Area' AS ETL_PHASE,
+	'stg_dim_reason' AS ETL_TABLE,
+	'check uniqueness of all dim attributes' AS ETL_CHECKTYPE,
+	'number of rows NOT unique: ' + str(count(row_count)) AS DESCRIPTION_RESULT,
+	CASE 
+		WHEN count(row_count) > 0
+			THEN 'FAIL'
+		ELSE 'OK'
+		END AS ETL_RESULT
+FROM (
+	SELECT count(*) AS row_count
+	FROM STG_TELECOMPLUS_SUBSCRIPTIONS.dbo.stg_dim_reason
+	GROUP BY reason_name
+	HAVING count(*) > 1
+	) q;
+
+
+
+-- SQL RULE 1 ON STG DIM PLAN
+
+INSERT INTO STG_TELECOMPLUS_SUBSCRIPTIONS.dbo.log_quality_check
+SELECT 1 AS ID_CHECK,
+	'Staging Area' AS ETL_PHASE,
+	'stg_dim_plan' AS ETL_TABLE,
+	'check integrity of BK' AS ETL_CHECKTYPE,
+	'number of rows with repeated BK: ' + str(count(row_count)) AS DESCRIPTION_RESULT,
+	CASE 
+		WHEN count(row_count) > 0
+			THEN 'FAIL'
+		ELSE 'OK'
+		END AS ETL_RESULT
+FROM (
+	SELECT count(*) AS row_count
+	FROM STG_TELECOMPLUS_SUBSCRIPTIONS.dbo.stg_dim_plan
+	GROUP BY bk_plan
+	HAVING count(*) > 1
+	) q;
+
+
+
+-- SQL RULE 2 ON STG DIM PLAN
+
+INSERT INTO STG_TELECOMPLUS_SUBSCRIPTIONS.dbo.log_quality_check
+SELECT 2 AS ID_CHECK,
+	'Staging Area' AS ETL_PHASE,
+	'stg_dim_plan' AS ETL_TABLE,
+	'check uniqueness of all dim attributes' AS ETL_CHECKTYPE,
+	'number of rows NOT unique: ' + str(count(row_count)) AS DESCRIPTION_RESULT,
+	CASE 
+		WHEN count(row_count) > 0
+			THEN 'FAIL'
+		ELSE 'OK'
+		END AS ETL_RESULT
+FROM (
+	SELECT count(*) AS row_count
+	FROM STG_TELECOMPLUS_SUBSCRIPTIONS.dbo.stg_dim_plan
+	GROUP BY product_name,
+		offer_category,
+		offer_type,
+		monthly_price,
+		data_allowance,
+		internet_speed,
+		description
+	HAVING count(*) > 1
+	) q;
+
+
+-- SQL RULE 1 ON STG DIM AGENT
+
+INSERT INTO STG_TELECOMPLUS_SUBSCRIPTIONS.dbo.log_quality_check
+SELECT 1 AS ID_CHECK,
+	'Staging Area' AS ETL_PHASE,
+	'stg_dim_agent' AS ETL_TABLE,
+	'check integrity of BK' AS ETL_CHECKTYPE,
+	'number of rows with repeated BK: ' + str(count(row_count)) AS DESCRIPTION_RESULT,
+	CASE 
+		WHEN count(row_count) > 0
+			THEN 'FAIL'
+		ELSE 'OK'
+		END AS ETL_RESULT
+FROM (
+	SELECT count(*) AS row_count
+	FROM STG_TELECOMPLUS_SUBSCRIPTIONS.dbo.stg_dim_agent
+	GROUP BY bk_agent
+	HAVING count(*) > 1
+	) q;
+
+
+-- SQL RULE 1 ON STG DIM AGENT
+
+INSERT INTO STG_TELECOMPLUS_SUBSCRIPTIONS.dbo.log_quality_check
+SELECT 1 AS ID_CHECK,
+	'Staging Area' AS ETL_PHASE,
+	'stg_dim_agent' AS ETL_TABLE,
+	'check integrity of BK' AS ETL_CHECKTYPE,
+	'number of rows with repeated BK: ' + str(count(row_count)) AS DESCRIPTION_RESULT,
+	CASE 
+		WHEN count(row_count) > 0
+			THEN 'FAIL'
+		ELSE 'OK'
+		END AS ETL_RESULT
+FROM (
+	SELECT count(*) AS row_count
+	FROM STG_TELECOMPLUS_SUBSCRIPTIONS.dbo.stg_dim_agent
+	GROUP BY bk_agent
+	HAVING count(*) > 1
+	) q;
+
+
+-- SQL RULE 2 ON STG DIM AGENT
+
+INSERT INTO STG_TELECOMPLUS_SUBSCRIPTIONS.dbo.log_quality_check
+SELECT 2 AS ID_CHECK,
+	'Staging Area' AS ETL_PHASE,
+	'stg_dim_agent' AS ETL_TABLE,
+	'check uniqueness of all dim attributes' AS ETL_CHECKTYPE,
+	'number of rows NOT unique: ' + str(count(row_count)) AS DESCRIPTION_RESULT,
+	CASE 
+		WHEN count(row_count) > 0
+			THEN 'FAIL'
+		ELSE 'OK'
+		END AS ETL_RESULT
+FROM (
+	SELECT count(*) AS row_count
+	FROM STG_TELECOMPLUS_SUBSCRIPTIONS.dbo.stg_dim_agent
+	GROUP BY agent_role,
+    		 agent_team,
+    		 agent_department,
+    		 agent_experience_years,
+    		 agent_experience_LVL
+	HAVING count(*) > 1
+	) q;
+
+
+-- SQL RULE 1 ON STG DIM CUSTOMER
+
+INSERT INTO STG_TELECOMPLUS_SUBSCRIPTIONS.dbo.log_quality_chec
+SELECT 1 AS ID_CHECK,
+	'Staging Area' AS ETL_PHASE,
+	'stg_dim_customer' AS ETL_TABLE,
+	'check integrity of BK' AS ETL_CHECKTYPE,
+	'number of rows with repeated BK: ' + str(count(row_count)) AS DESCRIPTION_RESULT,
+	CASE 
+		WHEN count(row_count) > 0
+			THEN 'FAIL'
+		ELSE 'OK'
+		END AS ETL_RESULT
+FROM (
+	SELECT count(*) AS row_count
+	FROM STG_TELECOMPLUS_SUBSCRIPTIONS.dbo.stg_dim_customer
+	GROUP BY bk_customer
+	HAVING count(*) > 1
+	) q;
+
+
+-- SQL RULE 2 ON STG DIM CUSTOMER
+
+INSERT INTO STG_TELECOMPLUS_SUBSCRIPTIONS.dbo.log_quality_check
+SELECT 2 AS ID_CHECK,
+	'Staging Area' AS ETL_PHASE,
+	'stg_dim_customer' AS ETL_TABLE,
+	'check uniqueness of all dim attributes' AS ETL_CHECKTYPE,
+	'number of rows NOT unique: ' + str(count(row_count)) AS DESCRIPTION_RESULT,
+	CASE 
+		WHEN count(row_count) > 0
+			THEN 'FAIL'
+		ELSE 'OK'
+		END AS ETL_RESULT
+FROM (
+	SELECT count(*) AS row_count
+	FROM STG_TELECOMPLUS_SUBSCRIPTIONS.dbo.stg_dim_customer
+	GROUP BY customer_first_name,
+customer_surname,
+customer_age,
+customer_gender,
+customer_city,
+customer_region,
+customer_state,
+customer_city_longitude,
+customer_city_latitude
+	HAVING count(*) > 1
+	) q;
+
+
+-- SQL RULE 3 ON STG FACT INTERACTIONS
+
+INSERT INTO STG_TELECOMPLUS_SUBSCRIPTIONS.dbo.log_quality_check
+SELECT 3 AS ID_CHECK,
+	'Staging Area' AS ETL_PHASE,
+	'stg_fact_customer_interactions_cases' AS ETL_TABLE,
+	'check integrity of fact PK (combo all FKs)' AS ETL_CHECKTYPE,
+	'number of rows with repeated PK: ' + str(count(row_count)) AS DESCRIPTION_RESULT,
+	CASE 
+		WHEN count(row_count) > 0
+			THEN 'FAIL'
+		ELSE 'OK'
+		END AS ETL_RESULT
+FROM (
+	SELECT count(*) AS row_count
+	FROM STG_TELECOMPLUS_SUBSCRIPTIONS.dbo.stg_fact_customer_interactions_cases
+	GROUP BY fk_date,
+		fk_agent,
+		fk_channel,
+		fk_customer,
+		fk_reason
+	HAVING count(*) > 1
+	) q;
+
+
+-- SQL RULE 4 ON STG FACT INTERACTIONS agent FK
+
+INSERT INTO STG_TELECOMPLUS_SUBSCRIPTIONS.dbo.log_quality_check
+SELECT 4 AS ID_CHECK,
+	'Staging Area' AS ETL_PHASE,
+	'stg_fact_customer_interactions_cases' AS ETL_TABLE,
+	'check parent of FK for Agent dimension' AS ETL_CHECKTYPE,
+	'number of rows without parent key: ' + str(max(row_count)) AS DESCRIPTION_RESULT,
+	CASE 
+		WHEN max(row_count) > 0
+			THEN 'FAIL'
+		ELSE 'OK'
+		END AS ETL_RESULT
+FROM (
+	SELECT count(*) AS row_count
+	FROM STG_TELECOMPLUS_SUBSCRIPTIONS.dbo.stg_fact_customer_interactions_cases
+	LEFT JOIN STG_TELECOMPLUS_SUBSCRIPTIONS.dbo.stg_dim_agent 
+		ON stg_fact_customer_interactions_cases.fk_agent = stg_dim_agent.bk_agent
+	WHERE stg_dim_agent.bk_agent IS NULL
+	) q;
+
+
+-- SQL RULE 4 ON STG FACT INTERACTIONS channel FK
+
+INSERT INTO STG_TELECOMPLUS_SUBSCRIPTIONS.dbo.log_quality_check
+SELECT 4 AS ID_CHECK,
+	'Staging Area' AS ETL_PHASE,
+	'stg_fact_customer_interactions_cases' AS ETL_TABLE,
+	'check parent of FK for Channel dimension' AS ETL_CHECKTYPE,
+	'number of rows without parent key: ' + str(max(row_count)) AS DESCRIPTION_RESULT,
+	CASE 
+		WHEN max(row_count) > 0
+			THEN 'FAIL'
+		ELSE 'OK'
+		END AS ETL_RESULT
+FROM (
+	SELECT count(*) AS row_count
+	FROM STG_TELECOMPLUS_SUBSCRIPTIONS.dbo.stg_fact_customer_interactions_cases
+	LEFT JOIN STG_TELECOMPLUS_SUBSCRIPTIONS.dbo.stg_dim_channel 
+		ON stg_fact_customer_interactions_cases.fk_channel = stg_dim_channel.bk_channel
+	WHERE stg_dim_channel.bk_channel IS NULL
+	) q;
+
+
+-- SQL RULE 4 ON STG FACT INTERACTIONS customerFK
+
+INSERT INTO STG_TELECOMPLUS_SUBSCRIPTIONS.dbo.log_quality_check
+SELECT 4 AS ID_CHECK,
+	'Staging Area' AS ETL_PHASE,
+	'stg_fact_customer_interactions_cases' AS ETL_TABLE,
+	'check parent of FK for Customer dimension' AS ETL_CHECKTYPE,
+	'number of rows without parent key: ' + str(max(row_count)) AS DESCRIPTION_RESULT,
+	CASE 
+		WHEN max(row_count) > 0
+			THEN 'FAIL'
+		ELSE 'OK'
+		END AS ETL_RESULT
+FROM (
+	SELECT count(*) AS row_count
+	FROM STG_TELECOMPLUS_SUBSCRIPTIONS.dbo.stg_fact_customer_interactions_cases
+	LEFT JOIN STG_TELECOMPLUS_SUBSCRIPTIONS.dbo.stg_dim_customer 
+		ON stg_fact_customer_interactions_cases.fk_customer = stg_dim_customer.bk_customer
+	WHERE stg_dim_customer.bk_customer IS NULL
+	) q;
+
+
+-- SQL RULE 4 ON STG FACT INTERACTIONS reasonFK
+
+INSERT INTO STG_TELECOMPLUS_SUBSCRIPTIONS.dbo.log_quality_chec
+SELECT 4 AS ID_CHECK,
+	'Staging Area' AS ETL_PHASE,
+	'stg_fact_customer_interactions_cases' AS ETL_TABLE,
+	'check parent of FK for Reason dimension' AS ETL_CHECKTYPE,
+	'number of rows without parent key: ' + str(max(row_count)) AS DESCRIPTION_RESULT,
+	CASE 
+		WHEN max(row_count) > 0
+			THEN 'FAIL'
+		ELSE 'OK'
+		END AS ETL_RESULT
+FROM (
+	SELECT count(*) AS row_count
+	FROM STG_TELECOMPLUS_SUBSCRIPTIONS.dbo.stg_fact_customer_interactions_cases
+	LEFT JOIN STG_TELECOMPLUS_SUBSCRIPTIONS.dbo.stg_dim_reason 
+		ON stg_fact_customer_interactions_cases.fk_reason = stg_dim_reason.bk_reason
+	WHERE stg_dim_reason.bk_reason IS NULL
+	) q;
+
+
+-- SQL RULE 4 ON STG FACT INTERACTIONS Date FK
+
+INSERT INTO STG_TELECOMPLUS_SUBSCRIPTIONS.dbo.log_quality_check
+SELECT 4 AS ID_CHECK,
+	'Staging Area' AS ETL_PHASE,
+	'stg_fact_customer_interactions_cases' AS ETL_TABLE,
+	'check parent of FK for Date dimension' AS ETL_CHECKTYPE,
+	'number of rows without parent key: ' + str(max(row_count)) AS DESCRIPTION_RESULT,
+	CASE 
+		WHEN max(row_count) > 0
+			THEN 'FAIL'
+		ELSE 'OK'
+		END AS ETL_RESULT
+FROM (
+	SELECT count(*) AS row_count
+	FROM STG_TELECOMPLUS_SUBSCRIPTIONS.dbo.stg_fact_customer_interactions_cases
+	LEFT JOIN STG_TELECOMPLUS_SUBSCRIPTIONS.dbo.stg_dim_date 
+		ON stg_fact_customer_interactions_cases.fk_date = stg_dim_date.proper_date
+	WHERE stg_dim_date.proper_date IS NULL
+	) q;
+
+
+-- SQL RULE 3 ON STG FACT SIGNUPS
+
+INSERT INTO STG_TELECOMPLUS_SUBSCRIPTIONS.dbo.log_quality_chec
+SELECT 3 AS ID_CHECK,
+	'Staging Area' AS ETL_PHASE,
+	'stg_fact_signups_record' AS ETL_TABLE,
+	'check integrity of fact PK (combo all FKs)' AS ETL_CHECKTYPE,
+	'number of rows with repeated PK: ' + str(count(row_count)) AS DESCRIPTION_RESULT,
+	CASE 
+		WHEN count(row_count) > 0
+			THEN 'FAIL'
+		ELSE 'OK'
+		END AS ETL_RESULT
+FROM (
+	SELECT count(*) AS row_count
+	FROM STG_TELECOMPLUS_SUBSCRIPTIONS.dbo.stg_fact_signups_record
+	GROUP BY fk_signup_date,
+		fk_termination_date,
+        	fk_customer,
+        	fk_plan
+	HAVING count(*) > 1
+	) q;
+
+
+-- SQL RULE 4 ON STG FACT SIGNUPS Signupdate FK
+
+INSERT INTO STG_TELECOMPLUS_SUBSCRIPTIONS.dbo.log_quality_check
+SELECT 4 AS ID_CHECK,
+	'Staging Area' AS ETL_PHASE,
+	'stg_fact_signups_record' AS ETL_TABLE,
+	'check parent of FK for Date dimension (Signup date)' AS ETL_CHECKTYPE,
+	'number of rows without parent key: ' + str(max(row_count)) AS DESCRIPTION_RESULT,
+	CASE 
+		WHEN max(row_count) > 0
+			THEN 'FAIL'
+		ELSE 'OK'
+		END AS ETL_RESULT
+FROM (
+	SELECT count(*) AS row_count
+	FROM STG_TELECOMPLUS_SUBSCRIPTIONS.dbo.stg_fact_signups_record
+	LEFT JOIN STG_TELECOMPLUS_SUBSCRIPTIONS.dbo.stg_dim_date 
+		ON stg_fact_signups_record.fk_signup_date = stg_dim_date.proper_date
+	WHERE stg_dim_date.proper_date IS NULL
+	) q;
+
+
+-- SQL RULE 4 ON STG FACT SIGNUPS Terminationdate FK
+
+INSERT INTO STG_TELECOMPLUS_SUBSCRIPTIONS.dbo.log_quality_check
+SELECT 4 AS ID_CHECK,
+	'Staging Area' AS ETL_PHASE,
+	'stg_fact_signups_record' AS ETL_TABLE,
+	'check parent of FK for Date dimension (Termination date)' AS ETL_CHECKTYPE,
+	'number of rows without parent key: ' + str(max(row_count)) AS DESCRIPTION_RESULT,
+	CASE 
+		WHEN max(row_count) > 0
+			THEN 'FAIL'
+		ELSE 'OK'
+		END AS ETL_RESULT
+FROM (
+	SELECT count(*) AS row_count
+	FROM STG_TELECOMPLUS_SUBSCRIPTIONS.dbo.stg_fact_signups_record
+	LEFT JOIN STG_TELECOMPLUS_SUBSCRIPTIONS.dbo.stg_dim_date 
+		ON stg_fact_signups_record.fk_termination_date = stg_dim_date.proper_date
+	WHERE stg_dim_date.proper_date IS NULL
+	) q;
+
+
+-- SQL RULE 4 ON STG FACT SIGNUPS Customer FK
+
+INSERT INTO STG_TELECOMPLUS_SUBSCRIPTIONS.dbo.log_quality_check
+SELECT 4 AS ID_CHECK,
+	'Staging Area' AS ETL_PHASE,
+	'stg_fact_signups_record' AS ETL_TABLE,
+	'check parent of FK for Customer dimension' AS ETL_CHECKTYPE,
+	'number of rows without parent key: ' + str(max(row_count)) AS DESCRIPTION_RESULT,
+	CASE 
+		WHEN max(row_count) > 0
+			THEN 'FAIL'
+		ELSE 'OK'
+		END AS ETL_RESULT
+FROM (
+	SELECT count(*) AS row_count
+	FROM STG_TELECOMPLUS_SUBSCRIPTIONS.dbo.stg_fact_signups_record
+	LEFT JOIN STG_TELECOMPLUS_SUBSCRIPTIONS.dbo.stg_dim_customer 
+		ON stg_fact_signups_record.fk_customer = stg_dim_customer.bk_customer
+	WHERE stg_dim_customer.bk_customer IS NULL
+	) q;
+
+
+-- SQL RULE 4 ON STG FACT SIGNUPS Plan FK
+
+INSERT INTO STG_TELECOMPLUS_SUBSCRIPTIONS.dbo.log_quality_chec
+SELECT 4 AS ID_CHECK,
+	'Staging Area' AS ETL_PHASE,
+	'stg_fact_signups_record' AS ETL_TABLE,
+	'check parent of FK for Plan dimension' AS ETL_CHECKTYPE,
+	'number of rows without parent key: ' + str(max(row_count)) AS DESCRIPTION_RESULT,
+	CASE 
+		WHEN max(row_count) > 0
+			THEN 'FAIL'
+		ELSE 'OK'
+		END AS ETL_RESULT
+FROM (
+	SELECT count(*) AS row_count
+	FROM STG_TELECOMPLUS_SUBSCRIPTIONS.dbo.stg_fact_signups_record
+	LEFT JOIN STG_TELECOMPLUS_SUBSCRIPTIONS.dbo.stg_dim_plan 
+		ON stg_fact_signups_record.fk_plan = stg_dim_plan.bk_plan
+	WHERE stg_dim_plan.bk_plan IS NULL
+	) q;

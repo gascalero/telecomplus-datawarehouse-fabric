@@ -1,6 +1,6 @@
 # telecomplus-datawarehouse-fabric
 Repository for TelecomPlus data warehouse &amp; ETL project in Microsoft Fabric. Provides a BI solution for sales and customer service insights using a star schema.
-```markdown
+
 # TelecomPlus Data Warehouse and ETL Project in Microsoft Fabric
 
 ## Overview
@@ -104,4 +104,3 @@ The project provided valuable experience with new tools like Fabric and reinforc
 ## Conclusion
 
 The data warehouse provides TelecomPlus with a well-structured system to transform raw data into actionable insights, enabling analysis of service performance, customer preferences, and revenue patterns, supporting better decision-making. Features like incremental loading and SCD Type 2 ensure efficiency and adaptability. The solution empowers TelecomPlus to improve customer experiences, optimize resource allocation, and drive sustained growth.
-```

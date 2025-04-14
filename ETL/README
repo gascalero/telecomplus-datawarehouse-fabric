@@ -1,1 +1,50 @@
+# ETL Process Overview
 
+This document provides an overview of the Extract, Transform, Load (ETL) processes implemented for the TelecomPlus data warehouse project, as detailed in the final delivery document [the sources]. The ETL process encompasses the staging area, quality checks, and the loading of data into the final data warehouse.
+
+## 1. Staging Area ETL
+
+The staging area serves as a temporary location where raw data from various sources is brought together, cleaned, and prepared for loading into the data warehouse. The ETL process in the staging area employs a mixed approach of **full and incremental loads**. Incremental load is specifically implemented for the two fact tables and the `stg_dim_customer` table.
+
+The staging area pipeline workflow involves:
+
+1.  **Clearing DIM tables** (except `stg_dim_customer`).
+2.  Utilizing a combination of **CopyData activities and DataFlows Gen2** for ETL from LakeHouse sources.
+3.  Loading all **DIM tables**.
+4.  Using two additional dataflows to load the **FACT tables**.
+
+### 1.1 Loading Dimension Tables
+
+*   **Stg_dim_customer**: Involved data enrichment through a **left outer join** with the `uscoordinates_info.csv` file to add geographic information (latitude, longitude, and region) based on the city. For the Slowly Changing Dimension (SCD) Type 2 implementation, further processing occurs (explained in "Extra ETL Work" in the source document).
+*   **Stg_dim_agent**: Transformation was done in a **Dataflow Gen 2** involving multiple steps (20 steps). The main challenge was handling the date format of the `hire_date` column, which required extracting year, month, and day into new columns and then combining them into a standardized format (`new_hire_date`). Logic was implemented to handle `hire_date` in YYYYMMDD or DDMMYYYY format. Additionally, agent experience in years and levels were calculated.
+*   **Stg_dim_date**: This table was **programmatically generated** within Microsoft Fabric using a date range from January 1, 2017, to the current date. The process included generating the date range using `List.Dates`, standardizing column types, adding derived columns for various date components (day of week, quarter, etc.), reordering columns, and data validation. `sk_date` is a surrogate key in YYYYMMDD format.
+*   **Stg dim_reason**: Created using a **Copy Data activity** from the `reason_info.csv` file in the Lakehouse. **No additional transformations were required**.
+*   **stg_dim_channel**: Created using a **Copy Data activity** from the `channel_info.csv` file in the Lakehouse. The data was transferred **as-is, with no additional transformations**.
+*   **stg_dim_plan**: Generated via a **Copy Data activity** from the `plans_info.csv` file in the Lakehouse. The data was copied **directly without any additional transformations**.
+
+### 1.2 Loading Fact Tables
+
+*   **Stg_fact_customer_interactions_cases**: Constructed using a **DataFlow Gen2** with three queries (though only the `customer_interactions_cases.csv` query is detailed in this section, with others related to incremental load explained later in the source document). A **custom column `new_interaction_date`** was added to correct the format of the `interaction_date`. Duplicate rows were also **removed** to ensure data integrity.
+*   **Stg_fact_signups_record**: Built using a **DataFlow Gen2** with four queries (with others for incremental load explained later in the source document). The `signups_record` fact table was created by extracting data from `plans_info` and `signups_record` CSV files and using the first row as headers. The `plans_info` dataset was **merged** into `signups_record` using `plan_id` via a left outer join, and the `monthly_price` column was expanded. A `time_difference` column was calculated to represent the duration between signup and termination dates in months, with null values (for prepaid plans without termination dates) replaced by 1. The `final_price` was calculated by multiplying `monthly_price` by `time_difference` and applying the `percentage_discount`. Null values in the `termination_date` column were replaced with '2023-12-31'.
+
+## 2. Quality Check Validation
+
+A quality check validation process was implemented following four standard rules:
+
+*   **Rule # 1**: Check Integrity of Business Key (for DIM tables)
+*   **Rule # 2**: Check Uniqueness of dimension attributes (for DIM tables)
+*   **Rule # 3**: Check Integrity of Fact table's PK (for FACT tables)
+*   **Rule # 4**: Check relationship of foreign key in Fact table (for FACT tables)
+
+A `log_quality_checks` table was created in the staging area to record any quality issues. According to the source document, **no errors were detected** after running the validation pipeline.
+
+## 3. Data Loading Process into the Data Warehouse
+
+The pipeline responsible for loading data into the final data warehouse follows a specific flow:
+
+1.  **Clearing data from DIM tables** (except `dim_customer`).
+2.  Loading DIM tables. `dim_customer` has its **own dedicated DataFlow Gen2** for loading into the DW, related to the Slowly Changing Dimension implementation.
+3.  Using **CopyData activities** to load the FACT tables.
+4.  Executing **scripts to clear data from the fact tables in the STAGING AREA**, which is a part of the incremental load process.
+
+It's important to note that there are **no clearing scripts for the fact tables in the final data warehouse**. Only new data is **appended** to these tables. This approach, along with the handling of `dim_customer`, is further detailed in the "Extra ETL work" section of the source document, focusing on incremental load and slowly changing dimensions.

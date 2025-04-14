@@ -1,0 +1,7 @@
+offer_category;offer_type;product_name;monthly_price;data_allowance;internet_speed;description;plan_id
+Mobile;Prepaid;Basic Prepaid Plan;15.0;5;;Entry-level prepaid plan with limited data;PLN001
+Mobile;Prepaid;Premium Prepaid Plan;30.0;15;;High-end prepaid plan with more data;PLN002
+Mobile;Postpaid;Unlimited Postpaid Plan;60.0;Unlimited;;Unlimited data for continuous connectivity;PLN003
+Internet;Fiber;Home Fiber Plan;50.0;;100.0;Standard fiber plan suitable for home use;PLN004
+Internet;Fiber;Ultra Fiber Plan;80.0;;300.0;High-speed fiber plan for streaming and gaming;PLN005
+Internet;Business Internet;Enterprise Business Plan;150.0;;500.0;High-speed, reliable internet for business needs;PLN006

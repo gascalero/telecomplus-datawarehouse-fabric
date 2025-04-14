@@ -1,0 +1,17 @@
+agent_name;agent_role;agent_team;agent_department;agent_id;hire_date
+Agent 2;Account Manager;Team Alpha;Customer Service;AGT001;31032018
+Agent 3;Customer Support;Team Charlie;Customer Service;AGT002;30102019
+Agent 4;Customer Support;Team Bravo;Sales;AGT003;20200113
+Agent 5;Account Manager;Team Delta;Customer Service;AGT004;20180614
+Agent 6;Account Manager;Team Alpha;Sales;AGT005;20221123
+Agent 7;Technical Support;Team Delta;Technical Support;AGT006;20200729
+Agent 8;Technical Support;Team Alpha;Technical Support;AGT007;20180713
+Agent 9;Technical Support;Team Delta;Sales;AGT008;20170806
+Agent 10;Customer Support;Team Alpha;Customer Service;AGT009;20221019
+Agent 12;Sales Representative;Team Charlie;Customer Service;AGT010;20211022
+Agent 14;Technical Support;Team Alpha;Sales;AGT011;23102022
+Agent 15;Sales Representative;Team Alpha;Technical Support;AGT012;20170128
+Agent 16;Customer Support;Team Bravo;Customer Service;AGT013;20180214
+Agent 17;Customer Support;Team Alpha;Sales;AGT014;20201024
+Agent 19;Technical Support;Team Delta;Customer Service;AGT015;20200902
+Agent 20;Technical Support;Team Charlie;Technical Support;AGT016;20210626

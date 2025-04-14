@@ -1,0 +1,16 @@
+channel_category,channel_type,channel_platform,channel_id
+Digital,Email,Support Email,CHNL001
+Digital,Email,Sales Email,CHNL006
+Digital,Email,Marketing Email,CHNL007
+Digital,Chat,Website Chat,CHNL002
+Digital,Chat,Mobile App Chat,CHNL008
+Digital,Chat,Facebook Messenger,CHNL009
+Voice,Phone,Toll-Free Line,CHNL003
+Voice,Phone,Local Line,CHNL010
+Voice,Phone,Customer Support Line,CHNL011
+In-Person,Store Visit,New York Branch,CHNL004
+In-Person,Store Visit,Los Angeles Branch,CHNL012
+In-Person,Store Visit,Chicago Branch,CHNL013
+Digital,Social Media,Twitter,CHNL005
+Digital,Social Media,Facebook,CHNL014
+Digital,Social Media,Instagram,CHNL015
